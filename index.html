@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🏸 Badminton Quest</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f0f2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-dark: #0f0f2e;
+  --bg-card: #1a1a40;
+  --bg-card-hover: #222255;
+  --accent-primary: #ff6b35;
+  --accent-secondary: #ffd166;
+  --accent-tertiary: #06d6a0;
+  --accent-blue: #118ab2;
+  --accent-purple: #9b5de5;
+  --accent-pink: #f15bb5;
+  --star-gold: #ffd166;
+  --star-empty: #3a3a5c;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0d0;
+  --text-muted: #6a6a8e;
+  --locked: #2a2a4a;
+  --success: #06d6a0;
+  --danger: #ef476f;
+  --joker-color: #9b5de5;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 20%, rgba(155,93,229,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(255,107,53,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(6,214,160,0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.screen { display: none; position: relative; z-index: 1; min-height: 100vh; padding-bottom: 100px; }
+.screen.active { display: block; }
+
+/* ===== HEADER ===== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(15,15,46,0.95);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.app-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-actions { display: flex; gap: 10px; align-items: center; }
+
+.joker-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--joker-color), #7b2ff7);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 12px rgba(155,93,229,0.4);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.joker-badge:active { transform: scale(0.95); }
+
+.btn-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-icon:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
+
+/* ===== WELCOME SCREEN ===== */
+.welcome-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.welcome-logo {
+  font-size: 5rem;
+  margin-bottom: 10px;
+  animation: bounce 2s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.welcome-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.welcome-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+}
+
+.player-input-group {
+  width: 100%;
+  max-width: 350px;
+  margin-bottom: 20px;
+}
+
+.player-input {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 2px solid rgba(255,255,255,0.1);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.player-input:focus { border-color: var(--accent-primary); }
+.player-input::placeholder { color: var(--text-muted); }
+
+.btn-start {
+  padding: 16px 50px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-primary), #ff8a5c);
+  color: white;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255,107,53,0.4);
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+.btn-start:active { transform: scale(0.95); }
+.btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.saved-players {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 350px;
+}
+
+.saved-players-title {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.saved-player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  margin: 4px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.saved-player-chip:active { background: var(--bg-card-hover); transform: scale(0.95); }
+.saved-player-chip .remove-player {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(239,71,111,0.2);
+  color: var(--danger);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-section {
+  padding: 20px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.progress-value {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-secondary);
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 12px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+  border-radius: 10px;
+  transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s ease infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ===== CHALLENGE GRID ===== */
+.challenges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  padding: 0 20px 20px;
+}
+
+.challenge-card {
+  position: relative;
+  border-radius: 18px;
+  padding: 18px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+.challenge-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 16px;
+  z-index: 0;
+}
+
+.challenge-card.locked {
+  background: var(--locked);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.challenge-card.available {
+  background: var(--bg-card);
+  border-color: rgba(255,107,53,0.3);
+  animation: pulseGlow 3s ease infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255,107,53,0.1); }
+  50% { box-shadow: 0 0 25px rgba(255,107,53,0.25); }
+}
+
+.challenge-card.completed {
+  background: linear-gradient(135deg, rgba(6,214,160,0.15), rgba(6,214,160,0.05));
+  border-color: rgba(6,214,160,0.3);
+}
+
+.challenge-card.perfect {
+  background: linear-gradient(135deg, rgba(255,209,102,0.15), rgba(255,209,102,0.05));
+  border-color: rgba(255,209,102,0.4);
+}
+
+.challenge-card:active:not(.locked) { transform: scale(0.95); }
+
+.challenge-number {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.challenge-card.locked .challenge-number { color: var(--text-muted); }
+.challenge-card.available .challenge-number { color: var(--accent-primary); }
+.challenge-card.completed .challenge-number { color: var(--accent-tertiary); }
+.challenge-card.perfect .challenge-number { color: var(--accent-secondary); }
+
+.challenge-stars {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.mini-star {
+  font-size: 0.9rem;
+  color: var(--star-empty);
+}
+.mini-star.earned { color: var(--star-gold); }
+
+.challenge-emoji {
+  font-size: 1.5rem;
+  margin-top: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.lock-icon {
+  font-size: 1.4rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ===== CHALLENGE DETAIL MODAL ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: 24px;
+  padding: 30px 24px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.modal-challenge-num {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 0.9rem;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+.modal-challenge-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 8px 0 4px;
+  line-height: 1.2;
+}
+
+.modal-challenge-emoji {
+  font-size: 3rem;
+  margin: 12px 0;
+}
+
+.modal-description {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.modal-criteria {
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.criteria-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent-secondary);
+  margin-bottom: 12px;
+}
+
+.criteria-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.criteria-row:last-child { border-bottom: none; }
+
+.criteria-stars {
+  display: flex;
+  gap: 3px;
+  min-width: 60px;
+}
+
+.criteria-star { font-size: 1.1rem; color: var(--star-gold); }
+.criteria-star.empty { color: var(--star-empty); }
+
+.criteria-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.star-select-section { margin: 20px 0; }
+
+.star-select-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: var(--text-primary);
+}
+
+.star-select-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.star-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  border: 2px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.star-btn:active { transform: scale(0.95); }
+
+.star-btn.selected {
+  border-color: var(--star-gold);
+  background: rgba(255,209,102,0.1);
+}
+
+.star-btn-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 1.4rem;
+}
+
+.star-btn-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.star-btn.selected .star-btn-label { color: var(--star-gold); }
+
+.btn-validate {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 8px;
+}
+
+.btn-validate.primary {
+  background: linear-gradient(135deg, var(--accent-tertiary), #04ba8a);
+  color: white;
+  box-shadow: 0 4px 16px rgba(6,214,160,0.3);
+}
+
+.btn-validate.primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-validate.primary:active:not(:disabled) { transform: scale(0.97); }
+
+.btn-validate.joker {
+  background: linear-gradient(135deg, var(--joker-color), #7b2ff7);
+  color: white;
+  box-shadow: 0 4px 16px rgba(155,93,229,0.3);
+  margin-top: 10px;
+}
+
+.btn-validate.retry {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+
+.current-stars-display {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.current-star-big { font-size: 2rem; }
+
+/* ===== BONUS GAME MODAL ===== */
+.bonus-game-area {
+  background: rgba(155,93,229,0.08);
+  border: 1px solid rgba(155,93,229,0.2);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+.bonus-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+  margin-bottom: 8px;
+}
+
+.bonus-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+/* ===== CELEBRATION OVERLAY ===== */
+.celebration-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+.celebration-overlay.active { display: flex; }
+
+.celebration-emoji { font-size: 5rem; animation: bounce 0.6s ease infinite; }
+
+.celebration-text {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.celebration-sub {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.celebration-stars {
+  display: flex;
+  gap: 8px;
+  font-size: 2.5rem;
+  animation: popIn 0.5s ease 0.3s both;
+}
+
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.btn-celebration-close {
+  padding: 14px 40px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-primary), #ff8a5c);
+  color: white;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* ===== SETTINGS/TEACHER SCREEN ===== */
+.teacher-panel {
+  padding: 20px;
+}
+
+.teacher-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.teacher-section {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.teacher-section-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-secondary);
+  margin-bottom: 12px;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.player-row:last-child { border-bottom: none; }
+
+.player-name-display {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.player-stats {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.06);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.btn-teacher {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.btn-teacher.reset {
+  background: rgba(239,71,111,0.15);
+  color: var(--danger);
+}
+
+.btn-teacher.export {
+  background: rgba(17,138,178,0.15);
+  color: var(--accent-blue);
+}
+
+.btn-teacher.joker-give {
+  background: rgba(155,93,229,0.15);
+  color: var(--accent-purple);
+}
+
+/* ===== CONFETTI ===== */
+.confetti-piece {
+  position: fixed;
+  z-index: 400;
+  pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 380px) {
+  .challenges-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 12px 12px; }
+  .challenge-card { padding: 14px 10px; }
+  .challenge-number { font-size: 1.5rem; }
+}
+
+/* ===== TAB NAV ===== */
+.tab-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: rgba(15,15,46,0.98);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.tab-item.active { color: var(--accent-primary); }
+.tab-item-icon { font-size: 1.4rem; }
+
+/* ===== JOKER MODAL ===== */
+.joker-info-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 6px;
+  color: var(--accent-purple);
+}
+
+.joker-info-desc {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.joker-type-card {
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left: 3px solid var(--joker-color);
+}
+
+.joker-type-name {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.joker-type-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ===== LEADERBOARD ===== */
+.leaderboard-list { padding: 0 20px; }
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.leaderboard-rank {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+}
+
+.rank-1 { color: var(--accent-secondary); }
+.rank-2 { color: #c0c0c0; }
+.rank-3 { color: #cd7f32; }
+
+.leaderboard-info { flex: 1; }
+
+.leaderboard-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.leaderboard-details {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.leaderboard-score {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-secondary);
+}
+
+/* Section titles */
+.section-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 16px 20px 10px;
+}
+
+/* Bonus games */
+.bonus-unlock-msg {
+  text-align: center;
+  padding: 20px;
+  margin: 0 20px;
+  background: linear-gradient(135deg, rgba(155,93,229,0.1), rgba(241,91,181,0.1));
+  border-radius: 16px;
+  border: 1px dashed rgba(155,93,229,0.3);
+}
+
+.bonus-unlock-emoji { font-size: 2rem; margin-bottom: 8px; }
+.bonus-unlock-text { font-family: 'Fredoka', sans-serif; font-weight: 700; }
+.bonus-unlock-sub { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen" class="screen active">
+  <div class="welcome-screen">
+    <div class="welcome-logo">🏸</div>
+    <div class="welcome-title">Badminton Quest</div>
+    <div class="welcome-subtitle">Relève les 20 défis et deviens un champion !</div>
+    <div class="player-input-group">
+      <input type="text" id="player-name-input" class="player-input" placeholder="Ton prénom..." maxlength="20" autocomplete="off">
+    </div>
+    <button class="btn-start" id="btn-start" onclick="startGame()">C'est parti ! 🚀</button>
+    <div class="saved-players" id="saved-players-section" style="display:none">
+      <div class="saved-players-title">Reprendre un parcours</div>
+      <div id="saved-players-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN GAME SCREEN -->
+<div id="game-screen" class="screen">
+  <div class="app-header">
+    <div class="app-title">🏸 Badminton Quest</div>
+    <div class="header-actions">
+      <div class="joker-badge" id="joker-display" onclick="showJokerInfo()">
+        <span>🃏</span>
+        <span id="joker-count">0</span>
+      </div>
+      <button class="btn-icon" onclick="switchPlayer()">👤</button>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-info">
+      <span class="progress-label" id="player-greeting">Salut !</span>
+      <span class="progress-value" id="progress-text">0 / 20</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="challenges-grid" id="challenges-grid"></div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button class="tab-item active" onclick="showTab('defis')">
+      <span class="tab-item-icon">🎯</span>
+      <span>Défis</span>
+    </button>
+    <button class="tab-item" onclick="showTab('classement')">
+      <span class="tab-item-icon">🏆</span>
+      <span>Classement</span>
+    </button>
+    <button class="tab-item" onclick="showTab('prof')">
+      <span class="tab-item-icon">⚙️</span>
+      <span>Prof</span>
+    </button>
+  </div>
+</div>
+
+<!-- LEADERBOARD SCREEN -->
+<div id="leaderboard-screen" class="screen">
+  <div class="app-header">
+    <div class="app-title">🏆 Classement</div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="showTab('defis')">✕</button>
+    </div>
+  </div>
+  <div class="section-title">Top des joueurs</div>
+  <div class="leaderboard-list" id="leaderboard-list"></div>
+  <div class="tab-nav">
+    <button class="tab-item" onclick="showTab('defis')"><span class="tab-item-icon">🎯</span><span>Défis</span></button>
+    <button class="tab-item active" onclick="showTab('classement')"><span class="tab-item-icon">🏆</span><span>Classement</span></button>
+    <button class="tab-item" onclick="showTab('prof')"><span class="tab-item-icon">⚙️</span><span>Prof</span></button>
+  </div>
+</div>
+
+<!-- TEACHER SCREEN -->
+<div id="teacher-screen" class="screen">
+  <div class="app-header">
+    <div class="app-title">⚙️ Espace Prof</div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="showTab('defis')">✕</button>
+    </div>
+  </div>
+  <div class="teacher-panel">
+    <div class="teacher-title">Gestion des joueurs</div>
+    <div class="teacher-section">
+      <div class="teacher-section-title">📋 Tous les joueurs</div>
+      <div id="teacher-players-list"></div>
+    </div>
+    <div class="teacher-section">
+      <div class="teacher-section-title">🃏 Donner un joker</div>
+      <div id="teacher-joker-list"></div>
+    </div>
+    <div class="teacher-section">
+      <div class="teacher-section-title">🔧 Actions</div>
+      <button class="btn-teacher export" onclick="exportData()">📊 Exporter les résultats</button>
+      <button class="btn-teacher reset" onclick="resetAllData()">🗑️ Réinitialiser tout</button>
+    </div>
+  </div>
+  <div class="tab-nav">
+    <button class="tab-item" onclick="showTab('defis')"><span class="tab-item-icon">🎯</span><span>Défis</span></button>
+    <button class="tab-item" onclick="showTab('classement')"><span class="tab-item-icon">🏆</span><span>Classement</span></button>
+    <button class="tab-item active" onclick="showTab('prof')"><span class="tab-item-icon">⚙️</span><span>Prof</span></button>
+  </div>
+</div>
+
+<!-- CHALLENGE DETAIL MODAL -->
+<div class="modal-overlay" id="challenge-modal">
+  <div class="modal-content" id="modal-content"></div>
+</div>
+
+<!-- JOKER INFO MODAL -->
+<div class="modal-overlay" id="joker-modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('joker-modal')">✕</button>
+    <div class="joker-info-title">🃏 Mes Jokers</div>
+    <div class="joker-info-desc">Les jokers te permettent de débloquer des avantages spéciaux !</div>
+    <div class="joker-type-card">
+      <div class="joker-type-name">🔓 Passe-défi (1 joker)</div>
+      <div class="joker-type-desc">Valide automatiquement un défi avec 2 étoiles pour passer au suivant.</div>
+    </div>
+    <div class="joker-type-card">
+      <div class="joker-type-name">⭐ Boost étoile (1 joker)</div>
+      <div class="joker-type-desc">Ajoute une étoile à ton résultat sur un défi (max 3 étoiles).</div>
+    </div>
+    <div style="text-align:center; margin-top:16px;">
+      <div style="font-size:2.5rem; font-family:'Fredoka'; font-weight:700; color: var(--accent-purple);" id="joker-modal-count">0</div>
+      <div style="font-size:0.85rem; color: var(--text-secondary);">jokers disponibles</div>
+    </div>
+  </div>
+</div>
+
+<!-- CELEBRATION OVERLAY -->
+<div class="celebration-overlay" id="celebration">
+  <div class="celebration-emoji" id="celebration-emoji">🎉</div>
+  <div class="celebration-text" id="celebration-text">Bravo !</div>
+  <div class="celebration-stars" id="celebration-stars"></div>
+  <div class="celebration-sub" id="celebration-sub"></div>
+  <button class="btn-celebration-close" onclick="closeCelebration()">Continuer</button>
+</div>
+
+<script>
+// ===== DATA =====
+const CHALLENGES = [
+  { id:1, title:"Premier service", emoji:"🏸", desc:"Effectue 5 services qui passent au-dessus du filet et tombent dans la zone de service adverse.", criteria:["0-2 services réussis","3-4 services réussis","5 services réussis"], category:"Service" },
+  { id:2, title:"Vise la cible", emoji:"🎯", desc:"Place 3 cerceaux au sol côté adverse. Fais tomber le volant dans un cerceau en frappant depuis le fond du terrain.", criteria:["0 cerceau touché","1 cerceau touché","2-3 cerceaux touchés"], category:"Précision" },
+  { id:3, title:"L'échange infini", emoji:"🔄", desc:"Avec un partenaire, réalisez le plus d'échanges consécutifs possible sans que le volant ne tombe.", criteria:["Moins de 5 échanges","5 à 9 échanges","10 échanges ou plus"], category:"Régularité" },
+  { id:4, title:"Le coup droit magique", emoji:"✨", desc:"Réalise 5 frappes en coup droit qui passent au-dessus du filet. Le volant doit atterrir dans le terrain adverse.", criteria:["0-2 réussites","3-4 réussites","5 réussites"], category:"Technique" },
+  { id:5, title:"Le revers surprise", emoji:"🪄", desc:"Réalise 5 frappes en revers qui passent au-dessus du filet. Le volant doit atterrir dans le terrain adverse.", criteria:["0-2 réussites","3-4 réussites","5 réussites"], category:"Technique" },
+  { id:6, title:"Serveur d'élite", emoji:"💫", desc:"Effectue 5 services longs qui arrivent au fond du terrain adverse (derrière la ligne de service long).", criteria:["0-1 service long réussi","2-3 services longs réussis","4-5 services longs réussis"], category:"Service" },
+  { id:7, title:"Le mur", emoji:"🧱", desc:"En situation d'échange, renvoie 8 volants consécutifs sans faire de faute. Chaque renvoi doit passer le filet.", criteria:["Moins de 4 renvois","4 à 7 renvois","8 renvois ou plus"], category:"Défense" },
+  { id:8, title:"Gauche-Droite", emoji:"↔️", desc:"Depuis le fond du terrain, alterne 3 frappes à gauche puis 3 frappes à droite du terrain adverse.", criteria:["0-2 frappes bien placées","3-4 frappes bien placées","5-6 frappes bien placées"], category:"Placement" },
+  { id:9, title:"Le filet magique", emoji:"🕸️", desc:"Réalise 5 amortis au filet : le volant doit retomber juste après le filet dans le terrain adverse.", criteria:["0-1 amorti réussi","2-3 amortis réussis","4-5 amortis réussis"], category:"Technique" },
+  { id:10, title:"Le smash !", emoji:"💥", desc:"Réalise 3 smashs qui touchent le sol adverse. Le volant doit être frappé au-dessus de la tête.", criteria:["0 smash réussi","1-2 smashs réussis","3 smashs réussis"], category:"Attaque" },
+  { id:11, title:"Duel au sommet", emoji:"⚔️", desc:"Gagne un set de 5 points en match contre un camarade. Applique les règles officielles de service.", criteria:["Perdu avec 0-1 point","Perdu avec 2-4 points","Gagné le set !"], category:"Match" },
+  { id:12, title:"Le lob parfait", emoji:"🌈", desc:"Réalise 5 lobs (trajectoire haute et longue) qui retombent au fond du terrain adverse.", criteria:["0-1 lob réussi","2-3 lobs réussis","4-5 lobs réussis"], category:"Technique" },
+  { id:13, title:"L'attaque enchaînée", emoji:"⚡", desc:"Réalise un enchaînement : service + frappe gagnante sur le retour. Répète 3 fois.", criteria:["0 enchaînement réussi","1-2 enchaînements réussis","3 enchaînements réussis"], category:"Tactique" },
+  { id:14, title:"Le déplacement ninja", emoji:"🥷", desc:"Parcours un circuit de 4 plots autour du terrain en touche-plot, puis réceptionne un service. Temps total < 15 sec.", criteria:["Plus de 20 secondes","15-20 secondes","Moins de 15 secondes"], category:"Déplacement" },
+  { id:15, title:"Service court précis", emoji:"📍", desc:"Réalise 5 services courts qui tombent juste après le filet dans la zone de service courte.", criteria:["0-1 service réussi","2-3 services réussis","4-5 services réussis"], category:"Service" },
+  { id:16, title:"Le retour gagnant", emoji:"🔥", desc:"Sur 5 services adverses, retourne le volant dans la moitié de terrain que tu choisis à l'avance.", criteria:["0-1 retour bien placé","2-3 retours bien placés","4-5 retours bien placés"], category:"Tactique" },
+  { id:17, title:"Variation de puissance", emoji:"🎭", desc:"Alterne 3 frappes fortes et 3 frappes douces sur le terrain adverse. L'adversaire doit confirmer la différence.", criteria:["Variation peu visible","Variation parfois visible","Variation claire et maîtrisée"], category:"Technique" },
+  { id:18, title:"Le match tactique", emoji:"🧠", desc:"Gagne un set de 7 points en utilisant au moins 2 types de coups différents pour marquer tes points.", criteria:["Perdu ou 1 seul type de coup","Gagné mais 1 type de coup","Gagné avec 2+ types de coups"], category:"Match" },
+  { id:19, title:"Le rallye marathon", emoji:"🏃", desc:"Avec un partenaire, réalisez un échange d'au moins 20 frappes. Chaque frappe doit passer le filet.", criteria:["Moins de 10 frappes","10 à 19 frappes","20 frappes ou plus"], category:"Régularité" },
+  { id:20, title:"Le champion", emoji:"👑", desc:"Gagne un match en 2 sets de 11 points. Utilise service, smash, amorti et lob pendant le match.", criteria:["Perdu le match","Gagné avec 2-3 types de coups","Gagné avec 4 types de coups"], category:"Match" }
+];
+
+const BONUS_GAMES = [
+  { id:"bonus1", unlockAt:5, title:"Volant fou", emoji:"🤪", desc:"Jongle avec le volant sur ta raquette pendant 30 secondes sans le faire tomber !" },
+  { id:"bonus2", unlockAt:10, title:"Tir de précision", emoji:"🏹", desc:"Vise 5 cibles placées sur le terrain adverse. Tu as 10 essais !" },
+  { id:"bonus3", unlockAt:15, title:"Le défi vitesse", emoji:"⏱️", desc:"Service, course au filet, touche le poteau et reviens servir. Le plus vite possible !" },
+  { id:"bonus4", unlockAt:20, title:"Roi du terrain", emoji:"👑", desc:"Défi ultime ! Match exhibition : montre tous tes coups devant la classe !" }
+];
+
+const JOKER_MILESTONES = [3, 7, 12, 17]; // Challenge completions that award jokers
+
+// ===== STATE =====
+let allPlayers = {};
+let currentPlayer = null;
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('badminton_quest_data');
+    if (raw) allPlayers = JSON.parse(raw);
+  } catch(e) { allPlayers = {}; }
+}
+
+function saveData() {
+  localStorage.setItem('badminton_quest_data', JSON.stringify(allPlayers));
+}
+
+function getPlayer() {
+  return allPlayers[currentPlayer] || null;
+}
+
+// ===== INIT =====
+function init() {
+  loadData();
+  renderSavedPlayers();
+  document.getElementById('player-name-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') startGame();
+  });
+}
+
+function renderSavedPlayers() {
+  const names = Object.keys(allPlayers);
+  const section = document.getElementById('saved-players-section');
+  const list = document.getElementById('saved-players-list');
+  if (names.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = names.map(name => `
+    <div class="saved-player-chip" onclick="resumePlayer('${name.replace(/'/g,"\\'")}')">
+      <span>${name}</span>
+      <span class="remove-player" onclick="event.stopPropagation(); removePlayer('${name.replace(/'/g,"\\'")}')">✕</span>
+    </div>
+  `).join('');
+}
+
+function removePlayer(name) {
+  if (confirm(`Supprimer le parcours de ${name} ?`)) {
+    delete allPlayers[name];
+    saveData();
+    renderSavedPlayers();
+  }
+}
+
+function resumePlayer(name) {
+  currentPlayer = name;
+  showGameScreen();
+}
+
+function startGame() {
+  const input = document.getElementById('player-name-input');
+  const name = input.value.trim();
+  if (!name) return;
+  
+  currentPlayer = name;
+  if (!allPlayers[name]) {
+    allPlayers[name] = {
+      challenges: {},
+      jokers: 1, // Start with 1 joker
+      totalStars: 0,
+      bonusCompleted: []
+    };
+    saveData();
+  }
+  showGameScreen();
+}
+
+function showGameScreen() {
+  document.getElementById('welcome-screen').classList.remove('active');
+  document.getElementById('game-screen').classList.add('active');
+  renderGame();
+}
+
+function switchPlayer() {
+  document.getElementById('game-screen').classList.remove('active');
+  document.getElementById('leaderboard-screen').classList.remove('active');
+  document.getElementById('teacher-screen').classList.remove('active');
+  document.getElementById('welcome-screen').classList.add('active');
+  document.getElementById('player-name-input').value = '';
+  currentPlayer = null;
+  loadData();
+  renderSavedPlayers();
+}
+
+// ===== RENDER GAME =====
+function renderGame() {
+  const player = getPlayer();
+  if (!player) return;
+
+  const completed = Object.keys(player.challenges).filter(k => player.challenges[k] >= 2).length;
+  
+  document.getElementById('player-greeting').textContent = `Salut ${currentPlayer} !`;
+  document.getElementById('progress-text').textContent = `${completed} / 20 défis`;
+  document.getElementById('progress-fill').style.width = `${(completed/20)*100}%`;
+  document.getElementById('joker-count').textContent = player.jokers || 0;
+
+  const grid = document.getElementById('challenges-grid');
+  let html = '';
+
+  CHALLENGES.forEach((ch, idx) => {
+    const stars = player.challenges[ch.id] || 0;
+    const isUnlocked = idx === 0 || (player.challenges[CHALLENGES[idx-1].id] || 0) >= 2;
+    const isCompleted = stars >= 2;
+    const isPerfect = stars === 3;
+    
+    let cardClass = 'locked';
+    if (isPerfect) cardClass = 'perfect';
+    else if (isCompleted) cardClass = 'completed';
+    else if (isUnlocked) cardClass = 'available';
+
+    html += `
+      <div class="challenge-card ${cardClass}" onclick="${isUnlocked ? `openChallenge(${ch.id})` : ''}">
+        <div class="challenge-number">${ch.id}</div>
+        <div class="challenge-stars">
+          ${[1,2,3].map(s => `<span class="mini-star ${stars >= s ? 'earned' : ''}">${stars >= s ? '⭐' : '☆'}</span>`).join('')}
+        </div>
+        ${isUnlocked ? `<div class="challenge-emoji">${ch.emoji}</div>` : `<div class="lock-icon">🔒</div>`}
+      </div>
+    `;
+
+    // Check for bonus game unlocks
+    const bonus = BONUS_GAMES.find(b => b.unlockAt === ch.id);
+    if (bonus && isCompleted) {
+      const bonusDone = player.bonusCompleted.includes(bonus.id);
+      html += `
+        <div class="challenge-card ${bonusDone ? 'perfect' : 'available'}" style="grid-column: 1 / -1; display:flex; align-items:center; gap:14px; padding:14px 18px;" onclick="openBonus('${bonus.id}')">
+          <span style="font-size:2rem">${bonus.emoji}</span>
+          <div style="flex:1;text-align:left;">
+            <div style="font-family:'Fredoka';font-weight:700;font-size:1rem;">🎮 Jeu Bonus : ${bonus.title}</div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);">${bonus.desc}</div>
+          </div>
+          ${bonusDone ? '<span style="font-size:1.2rem">✅</span>' : '<span style="font-size:1.2rem">▶️</span>'}
+        </div>
+      `;
+    }
+  });
+
+  grid.innerHTML = html;
+}
+
+// ===== CHALLENGE MODAL =====
+function openChallenge(id) {
+  const ch = CHALLENGES.find(c => c.id === id);
+  const player = getPlayer();
+  const currentStars = player.challenges[id] || 0;
+
+  const modal = document.getElementById('challenge-modal');
+  const content = document.getElementById('modal-content');
+
+  content.innerHTML = `
+    <button class="modal-close" onclick="closeModal('challenge-modal')">✕</button>
+    <div class="modal-challenge-num">Défi ${ch.id} • ${ch.category}</div>
+    <div class="modal-challenge-title">${ch.title}</div>
+    <div class="modal-challenge-emoji">${ch.emoji}</div>
+    <div class="modal-description">${ch.desc}</div>
+    
+    ${currentStars > 0 ? `
+      <div style="text-align:center; margin-bottom:16px;">
+        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Ton résultat actuel</div>
+        <div class="current-stars-display">
+          ${[1,2,3].map(s => `<span class="current-star-big">${currentStars >= s ? '⭐' : '☆'}</span>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+    
+    <div class="modal-criteria">
+      <div class="criteria-title">Barème</div>
+      ${ch.criteria.map((c, i) => `
+        <div class="criteria-row">
+          <div class="criteria-stars">
+            ${[0,1,2].map(s => `<span class="criteria-star ${s <= i ? '' : 'empty'}">${s <= i ? '⭐' : '☆'}</span>`).join('')}
+          </div>
+          <div class="criteria-text">${c}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="star-select-section">
+      <div class="star-select-title">Ton résultat :</div>
+      <div class="star-select-buttons" id="star-buttons">
+        ${[1,2,3].map(s => `
+          <div class="star-btn" onclick="selectStars(${s})" id="star-btn-${s}">
+            <div class="star-btn-stars">${'⭐'.repeat(s)}</div>
+            <div class="star-btn-label">${s === 1 ? 'En cours' : s === 2 ? 'Réussi' : 'Expert'}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <button class="btn-validate primary" id="btn-validate" disabled onclick="validateChallenge(${ch.id})">
+      ✅ Valider mon résultat
+    </button>
+    
+    ${player.jokers > 0 && currentStars < 2 ? `
+      <button class="btn-validate joker" onclick="useJokerPass(${ch.id})">
+        🃏 Utiliser un Passe-défi
+      </button>
+    ` : ''}
+    
+    ${player.jokers > 0 && currentStars > 0 && currentStars < 3 ? `
+      <button class="btn-validate joker" onclick="useJokerBoost(${ch.id})">
+        ⭐ Boost étoile (+1 joker)
+      </button>
+    ` : ''}
+  `;
+
+  modal.classList.add('active');
+}
+
+let selectedStars = 0;
+
+function selectStars(n) {
+  selectedStars = n;
+  [1,2,3].forEach(s => {
+    document.getElementById(`star-btn-${s}`).classList.toggle('selected', s === n);
+  });
+  document.getElementById('btn-validate').disabled = false;
+}
+
+function validateChallenge(id) {
+  if (selectedStars === 0) return;
+  const player = getPlayer();
+  const prevStars = player.challenges[id] || 0;
+  
+  // Keep highest score
+  player.challenges[id] = Math.max(prevStars, selectedStars);
+  player.totalStars = Object.values(player.challenges).reduce((a,b) => a+b, 0);
+  
+  // Check for joker milestone
+  const completed = Object.keys(player.challenges).filter(k => player.challenges[k] >= 2).length;
+  if (JOKER_MILESTONES.includes(completed) && prevStars < 2 && selectedStars >= 2) {
+    player.jokers = (player.jokers || 0) + 1;
+  }
+  
+  saveData();
+  closeModal('challenge-modal');
+  selectedStars = 0;
+  
+  // Celebration
+  showCelebration(id, player.challenges[id]);
+}
+
+function useJokerPass(id) {
+  const player = getPlayer();
+  if (player.jokers <= 0) return;
+  if (!confirm('Utiliser 1 joker pour valider ce défi avec 2 étoiles ?')) return;
+  
+  player.jokers--;
+  player.challenges[id] = Math.max(player.challenges[id] || 0, 2);
+  player.totalStars = Object.values(player.challenges).reduce((a,b) => a+b, 0);
+  saveData();
+  closeModal('challenge-modal');
+  showCelebration(id, 2, true);
+}
+
+function useJokerBoost(id) {
+  const player = getPlayer();
+  if (player.jokers <= 0) return;
+  const current = player.challenges[id] || 0;
+  if (current >= 3) return;
+  if (!confirm('Utiliser 1 joker pour ajouter une étoile ?')) return;
+  
+  player.jokers--;
+  player.challenges[id] = Math.min(current + 1, 3);
+  player.totalStars = Object.values(player.challenges).reduce((a,b) => a+b, 0);
+  saveData();
+  closeModal('challenge-modal');
+  renderGame();
+}
+
+// ===== BONUS GAMES =====
+function openBonus(bonusId) {
+  const bonus = BONUS_GAMES.find(b => b.id === bonusId);
+  const player = getPlayer();
+  const done = player.bonusCompleted.includes(bonusId);
+
+  const modal = document.getElementById('challenge-modal');
+  const content = document.getElementById('modal-content');
+
+  content.innerHTML = `
+    <button class="modal-close" onclick="closeModal('challenge-modal')">✕</button>
+    <div class="modal-challenge-num">🎮 Jeu Bonus</div>
+    <div class="modal-challenge-title">${bonus.title}</div>
+    <div class="modal-challenge-emoji">${bonus.emoji}</div>
+    <div class="modal-description">${bonus.desc}</div>
+    ${done ? `
+      <div style="text-align:center; padding:20px;">
+        <div style="font-size:2rem;">✅</div>
+        <div style="font-family:'Fredoka'; font-weight:700; margin-top:8px;">Bonus complété !</div>
+        <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:4px;">Tu as gagné un joker bonus 🃏</div>
+      </div>
+    ` : `
+      <button class="btn-validate primary" onclick="completeBonus('${bonusId}')">
+        ✅ J'ai réussi le bonus !
+      </button>
+    `}
+  `;
+  modal.classList.add('active');
+}
+
+function completeBonus(bonusId) {
+  const player = getPlayer();
+  if (!player.bonusCompleted.includes(bonusId)) {
+    player.bonusCompleted.push(bonusId);
+    player.jokers = (player.jokers || 0) + 1;
+    saveData();
+  }
+  closeModal('challenge-modal');
+  showCelebration(0, 0, false, true);
+}
+
+// ===== CELEBRATION =====
+function showCelebration(challengeId, stars, isJoker = false, isBonus = false) {
+  const overlay = document.getElementById('celebration');
+  const ch = CHALLENGES.find(c => c.id === challengeId);
+  
+  if (isBonus) {
+    document.getElementById('celebration-emoji').textContent = '🎮';
+    document.getElementById('celebration-text').textContent = 'Bonus complété !';
+    document.getElementById('celebration-stars').innerHTML = '🃏';
+    document.getElementById('celebration-sub').textContent = 'Tu as gagné un joker !';
+  } else if (isJoker) {
+    document.getElementById('celebration-emoji').textContent = '🃏';
+    document.getElementById('celebration-text').textContent = 'Joker utilisé !';
+    document.getElementById('celebration-stars').innerHTML = '⭐⭐';
+    document.getElementById('celebration-sub').textContent = `${ch.title} validé !`;
+  } else {
+    const emojis = ['🎉','🔥','💪','🎊','⚡'];
+    document.getElementById('celebration-emoji').textContent = stars === 3 ? '🌟' : emojis[Math.floor(Math.random()*emojis.length)];
+    document.getElementById('celebration-text').textContent = stars === 3 ? 'Parfait !' : stars >= 2 ? 'Bravo !' : 'Continue !';
+    document.getElementById('celebration-stars').innerHTML = [1,2,3].map(s => `<span>${stars >= s ? '⭐' : '☆'}</span>`).join('');
+    document.getElementById('celebration-sub').textContent = stars >= 2 ? `${ch.title} réussi ! ${stars === 3 ? 'Score parfait !' : 'Tu peux améliorer !'}` : `Il te faut 2 étoiles minimum. Réessaie !`;
+    
+    // Check for joker reward
+    const player = getPlayer();
+    const completed = Object.keys(player.challenges).filter(k => player.challenges[k] >= 2).length;
+    if (JOKER_MILESTONES.includes(completed)) {
+      document.getElementById('celebration-sub').textContent += ' 🃏 +1 Joker !';
+    }
+  }
+
+  overlay.classList.add('active');
+  if (stars >= 2 || isBonus || isJoker) launchConfetti();
+}
+
+function closeCelebration() {
+  document.getElementById('celebration').classList.remove('active');
+  renderGame();
+}
+
+function launchConfetti() {
+  const colors = ['#ff6b35','#ffd166','#06d6a0','#118ab2','#9b5de5','#f15bb5'];
+  for (let i = 0; i < 40; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.width = (Math.random() * 10 + 6) + 'px';
+    piece.style.height = (Math.random() * 10 + 6) + 'px';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+    piece.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 4000);
+  }
+}
+
+// ===== MODALS =====
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+  selectedStars = 0;
+}
+
+function showJokerInfo() {
+  const player = getPlayer();
+  document.getElementById('joker-modal-count').textContent = player ? player.jokers : 0;
+  document.getElementById('joker-modal').classList.add('active');
+}
+
+// ===== TABS =====
+function showTab(tab) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  
+  document.getElementById('game-screen').classList.remove('active');
+  document.getElementById('leaderboard-screen').classList.remove('active');
+  document.getElementById('teacher-screen').classList.remove('active');
+  
+  if (tab === 'defis') {
+    document.getElementById('game-screen').classList.add('active');
+    document.querySelectorAll('#game-screen .tab-item')[0].classList.add('active');
+    renderGame();
+  } else if (tab === 'classement') {
+    document.getElementById('leaderboard-screen').classList.add('active');
+    document.querySelectorAll('#leaderboard-screen .tab-item')[1].classList.add('active');
+    renderLeaderboard();
+  } else if (tab === 'prof') {
+    document.getElementById('teacher-screen').classList.add('active');
+    document.querySelectorAll('#teacher-screen .tab-item')[2].classList.add('active');
+    renderTeacher();
+  }
+}
+
+// ===== LEADERBOARD =====
+function renderLeaderboard() {
+  loadData();
+  const list = document.getElementById('leaderboard-list');
+  const players = Object.entries(allPlayers).map(([name, data]) => {
+    const completed = Object.keys(data.challenges).filter(k => data.challenges[k] >= 2).length;
+    const totalStars = Object.values(data.challenges).reduce((a,b) => a+b, 0);
+    return { name, completed, totalStars, bonuses: (data.bonusCompleted||[]).length };
+  }).sort((a,b) => b.totalStars - a.totalStars || b.completed - a.completed);
+
+  if (players.length === 0) {
+    list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Aucun joueur pour l\'instant</div>';
+    return;
+  }
+
+  list.innerHTML = players.map((p, i) => `
+    <div class="leaderboard-item">
+      <div class="leaderboard-rank ${i < 3 ? `rank-${i+1}` : ''}">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i+1}</div>
+      <div class="leaderboard-info">
+        <div class="leaderboard-name">${p.name}</div>
+        <div class="leaderboard-details">${p.completed}/20 défis • ${p.bonuses} bonus</div>
+      </div>
+      <div class="leaderboard-score">${p.totalStars} ⭐</div>
+    </div>
+  `).join('');
+}
+
+// ===== TEACHER =====
+function renderTeacher() {
+  loadData();
+  const playersList = document.getElementById('teacher-players-list');
+  const jokerList = document.getElementById('teacher-joker-list');
+  const names = Object.keys(allPlayers);
+
+  if (names.length === 0) {
+    playersList.innerHTML = '<div style="color:var(--text-muted); padding:10px;">Aucun joueur</div>';
+    jokerList.innerHTML = '<div style="color:var(--text-muted); padding:10px;">Aucun joueur</div>';
+    return;
+  }
+
+  playersList.innerHTML = names.map(name => {
+    const data = allPlayers[name];
+    const completed = Object.keys(data.challenges).filter(k => data.challenges[k] >= 2).length;
+    const totalStars = Object.values(data.challenges).reduce((a,b) => a+b, 0);
+    return `
+      <div class="player-row">
+        <div class="player-name-display">${name}</div>
+        <div class="player-stats">
+          <div class="stat-chip">🎯 ${completed}/20</div>
+          <div class="stat-chip">⭐ ${totalStars}</div>
+          <div class="stat-chip">🃏 ${data.jokers||0}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  jokerList.innerHTML = names.map(name => `
+    <div class="player-row">
+      <div class="player-name-display">${name}</div>
+      <button class="btn-teacher joker-give" style="width:auto; margin:0; padding:8px 16px; font-size:0.85rem;" onclick="giveJoker('${name.replace(/'/g,"\\'")}')">
+        🃏 +1 Joker
+      </button>
+    </div>
+  `).join('');
+}
+
+function giveJoker(name) {
+  allPlayers[name].jokers = (allPlayers[name].jokers || 0) + 1;
+  saveData();
+  renderTeacher();
+  if (currentPlayer === name) renderGame();
+}
+
+function resetAllData() {
+  if (confirm('⚠️ Supprimer TOUTES les données de TOUS les joueurs ?')) {
+    if (confirm('Dernière confirmation : cette action est irréversible !')) {
+      allPlayers = {};
+      saveData();
+      switchPlayer();
+    }
+  }
+}
+
+function exportData() {
+  loadData();
+  let csv = 'Prénom;Défis complétés;Étoiles totales;Jokers restants;Bonus complétés;Détail étoiles\n';
+  Object.entries(allPlayers).forEach(([name, data]) => {
+    const completed = Object.keys(data.challenges).filter(k => data.challenges[k] >= 2).length;
+    const totalStars = Object.values(data.challenges).reduce((a,b) => a+b, 0);
+    const detail = CHALLENGES.map(ch => `D${ch.id}:${data.challenges[ch.id]||0}★`).join(' ');
+    csv += `${name};${completed};${totalStars};${data.jokers||0};${(data.bonusCompleted||[]).length};${detail}\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `badminton_quest_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Close modals on overlay click
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('active');
+    selectedStars = 0;
+  }
+});
+
+// ===== SERVICE WORKER & AUTO-UPDATE =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(registration => {
+      // Check for updates every 30 seconds
+      setInterval(() => {
+        registration.update();
+      }, 30000);
+
+      // Listen for new service worker
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'activated') {
+            // New version available - auto reload
+            window.location.reload();
+          }
+        });
+      });
+    }).catch(err => console.log('SW registration failed:', err));
+
+    // Listen for messages from service worker
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data && event.data.type === 'SW_UPDATED') {
+        console.log('App updated to:', event.data.version);
+      }
+    });
+  });
+}
+
+// Init
+init();
+</script>
+</body>
+</html>
